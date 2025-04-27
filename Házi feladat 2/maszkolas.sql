@@ -1,7 +1,7 @@
 CREATE TABLE webshop_ugyfel (
     LOGIN TEXT MASKED WITH (FUNCTION = 'partial(1,"XXX",1)'),
     EMAIL TEXT MASKED WITH (FUNCTION = 'email()'),
-    NEV TEXT,
+    NEV TEXT MASKED WITH (Function = 'default()'),
     SZULEV INTEGER MASKED WITH (FUNCTION = 'random(1950,2000)'),
     NEM TEXT,
     CIM TEXT MASKED WITH (FUNCTION = 'partial(0,"XXX",8)')
@@ -25,6 +25,6 @@ GRANT SELECT ON webshop_ugyfel TO MaskUser;
 --maszk
 EXECUTE AS USER = 'MaskUser';
 SELECT * FROM webshop_ugyfel;
---maszk nélkül
+--maszk nélkül --DROP USER [MaskUser];
 REVERT;
 SELECT * FROM webshop_ugyfel;
