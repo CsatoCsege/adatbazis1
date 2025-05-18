@@ -1,0 +1,62 @@
+1)
+// Összes koktél
+MATCH (k:Koktel)
+RETURN k.nev AS KoktelNeve, k.szarmazas AS Szarmazas, k.nehezseg AS Nehezseg
+ORDER BY k.nev;
+2)
+// Vodkát tartalmaz
+MATCH (k:Koktel)-[:TARTALMAZ]->(h:Hozzavalo {nev: "Vodka"})
+RETURN k.nev AS Koktel;
+3)
+// Legtöbb összetevő
+MATCH (k:Koktel)-[:TARTALMAZ]->(h:Hozzavalo)
+WITH k, COUNT(h) AS osszetevok_szama
+RETURN k.nev, osszetevok_szama
+ORDER BY osszetevok_szama DESC
+LIMIT 1;
+4)
+// Kik a pajtásai Kovács Jánosnak?
+MATCH (e:Ember {nev: "Kovács János"})-[:BARATJA]->(barat:Ember)
+RETURN barat.nev;
+5)
+// Miket értékelt Horvát Anna?
+MATCH (e:Ember {nev: "Horváth Anna"})-[:ERTEKEL]->(k:Koktel)
+RETURN k.nev;
+6)
+// Legjobb értékelés?
+MATCH (e:Ember)-[r:ERTEKEL]->(k:Koktel)
+RETURN k.nev, AVG(r.ertekeles) AS atlag_ertekeles
+ORDER BY atlag_ertekeles DESC
+LIMIT 1;
+7)
+// Alkoholmentes?
+MATCH (h:Hozzavalo)
+WHERE h.alkohol_szazalek = 0
+RETURN h.nev;
+8)
+// Gin Tonic értékelések száma?
+MATCH (e:Ember)-[:ERTEKEL]->(k:Koktel {nev: "Gin Tonik"})
+RETURN COUNT(e) AS ertekelok_szama;
+9)
+// Ember kedvenc koktélja?
+MATCH (e:Ember)-[r:ERTEKEL]->(k:Koktel)
+WITH e, r, k
+ORDER BY e.ember_id, r.ertekeles DESC
+WITH e.nev AS Ember, collect({koktel: k.nev, ertekeles: r.ertekeles})[0] AS Kedvenc
+RETURN Ember, Kedvenc.koktel, Kedvenc.ertekeles;
+10)
+// Több mint 2 közös barát?
+MATCH (a:Ember)-[:BARATJA]->(kozos:Ember)<-[:BARATJA]-(b:Ember)
+WHERE a <> b
+WITH a, b, COUNT(DISTINCT kozos) AS kozos_baratok
+WHERE kozos_baratok >= 2
+RETURN a.nev AS Ember1, b.nev AS Ember2, kozos_baratok
+UNION
+WITH "Nincsen legalább 2 közös baráttal rendelkező ember." AS uzenet
+RETURN uzenet AS Ember1, "" AS Ember2, 0 AS kozos_baratok
+LIMIT 1;
+11)
+// Hozzávalók és mennyiség (Gin Tonic)
+MATCH (k:Koktel {nev: "Gin Tonik"})-[:TARTALMAZ]->(h:Hozzavalo)
+MATCH (k)-[kapcs:TARTALMAZ]->(h)
+RETURN h.nev AS Hozzavalo, kapcs.mennyiseg AS Mennyiseg;
